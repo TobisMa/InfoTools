@@ -1,3 +1,7 @@
 [submodule "RSA"]
 	path = RSA
 	url = https://github.com/TobisMa/RSA
+
+[submodule "Johnny"]
+	path = Johnny
+	url = https://github.com/TobisMa/Johnny
