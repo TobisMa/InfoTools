@@ -9,4 +9,4 @@ A simple tool written in python to generate RSA keys and to view the calculation
 When someone has not installed python or does not want to use the given terminal programm, they can use the generated exe files.  
 
 ## JohnnyDesktop
-A runnable program for a Windows laptop to execute with resizing
+A runnable program for a Windows laptop to execute with resizing to the window size
