@@ -56,7 +56,7 @@ def get_int_input(quest, r=None):
 
     return i
 
-def save_input(quest):
+def safe_input(quest):
     answer = ""
     while not answer:
         answer = input(quest)
@@ -68,7 +68,7 @@ def get_math_solution(prefix: str, term: str, right: bool):
     if (CALC == 2 or (CALC == 1 and right)):
         return str(simplify(parse_expr(term.replace("−", "-"), transformations=transformations)))
     else:
-        return save_input("%s: %s = " % (prefix, term))
+        return safe_input("%s: %s = " % (prefix, term))
 
 def mat_copy(m):
     return [x[:] for x in m]
@@ -103,7 +103,7 @@ for r in range(ROWS):
     for c in range(COLUMNS):
         value = ""
         while not value:
-            value = save_input("Entry at %sr %sc: " % (r + 1, c + 1))
+            value = safe_input("Entry at %sr %sc: " % (r + 1, c + 1))
         matrix[r][c] = value
 
 print("\nEntered matrix:")
@@ -144,7 +144,7 @@ while True:
         continue
     try:
         if action[0] == "q":
-            if save_input("You sure to quit? [y]es/[N]o: ").lower() == "y":
+            if safe_input("You sure to quit? [y]es/[N]o: ").lower() == "y":
                 break
             continue
 
@@ -152,7 +152,7 @@ while True:
             print("NOTE: This operation can break the data validation (assuming you have no mistakes in your calculations so far... hehe")
             row = get_int_input("Row: ", range(1, ROWS + 1)) - 1
             column = get_int_input("Column: ", range(1, 2 * COLUMNS + 1)) - 1
-            value = save_input("Enter value: ")
+            value = safe_input("Enter value: ")
             matrix[row][column] = value
             args = (row + 1, column + 1, matrix[row][column])
 
@@ -190,7 +190,7 @@ while True:
 
         elif action[0] in "m*":
             row = get_int_input("Row to multiply with a factor: ", range(1, ROWS + 1)) - 1
-            factor = save_input("Factor to multiply with: ")
+            factor = safe_input("Factor to multiply with: ")
 
             for i, value in enumerate(matrix[row][:COLUMNS]):
                 matrix[row][i] = get_math_solution("Column " + str(i), "%s * %s" % (math_expr(value), math_expr(factor)), False)
@@ -218,7 +218,7 @@ while True:
         elif action[0] == "w":
             target_row = get_int_input("Target row A (which will be changed): ", range(1, ROWS + 1)) - 1
             row_to_add = get_int_input("Row B to add: ", range(1, ROWS + 1)) - 1
-            factor = save_input("Factor to multiply on row B before adding: ")
+            factor = safe_input("Factor to multiply on row B before adding: ")
 
             row_copy = matrix[row_to_add][:COLUMNS]
             print("\nMultiply row:")
@@ -238,7 +238,7 @@ while True:
             continue
 
     except KeyboardInterrupt:
-        if save_input("\nOperation canceled. Quit programm? [y]es/[N]o: ").lower() == "y":
+        if safe_input("\nOperation canceled. Quit programm? [y]es/[N]o: ").lower() == "y":
             break
         continue
 
