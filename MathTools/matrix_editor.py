@@ -1,5 +1,20 @@
 import sys
-CALC = int(input("Calculator (2: automatic, 1: only right matrix, 0: manual): "))
+
+def get_int_input(quest, r=None):
+    answer = ""
+    i:int = 0
+    while not answer:
+        answer = input(quest)
+        try:
+            i = int(answer)
+        except (TypeError, ValueError):
+            answer = ""
+        if r is not None and i not in r:
+            answer = ""
+
+    return i
+
+CALC = int(get_int_input("Calculator (2: automatic, 1: only right matrix, 0: manual): ", range(0, 3)))
 
 if CALC != 0:
     from sympy import parse_expr, simplify
@@ -43,20 +58,6 @@ def print_mat(mat):
         else:
             print(" │")
 
-def get_int_input(quest, r=None):
-    answer = ""
-    i:int = 0
-    while not answer:
-        answer = input(quest)
-        try:
-            i = int(answer)
-        except (TypeError, ValueError):
-            answer = ""
-        if r is not None and i not in r:
-            answer = ""
-
-    return i
-
 def safe_input(quest):
     answer = ""
     while not answer:
@@ -75,7 +76,7 @@ def mat_copy(m):
 def math_expr(s):
     for op in OPERATORS:
         if op in s:
-            return "%s" % s
+            return "(%s)" % s
     return s
 
 ARGS = sys.argv[1:]
@@ -192,10 +193,10 @@ while True:
             factor = safe_input("Factor to multiply with: ")
 
             for i, value in enumerate(matrix[row][:COLUMNS]):
-                matrix[row][i] = get_math_solution("Column " + str(i), "%s * %s" % (math_expr(value), math_expr(factor)), False)
+                matrix[row][i] = get_math_solution("Column %i" % i, "%s * %s" % (math_expr(value), math_expr(factor)), False)
 
             for i, value in enumerate(matrix[row][COLUMNS + 1:]):
-                matrix[row][COLUMNS+i+1] = get_math_solution("Result of", "%s * %s" % (math_expr(value), math_expr(factor)), True)
+                matrix[row][COLUMNS + i + 1] = get_math_solution("Result of", "%s * %s" % (math_expr(value), math_expr(factor)), True)
 
             args = (row + 1, factor)
 
@@ -210,7 +211,7 @@ while True:
             
             original_add_row = swap_mapping_rows[row_to_add]
             for i, value in enumerate(matrix[target_row][COLUMNS + 1:]):
-                matrix[target_row][COLUMNS+i+1] = get_math_solution("Result of", "%s %s %s" % (math_expr(value), sign, math_expr(matrix[row_to_add][COLUMNS+i+1])), False)
+                matrix[target_row][COLUMNS + i + 1] = get_math_solution("Result of", "%s %s %s" % (math_expr(value), sign, math_expr(matrix[row_to_add][COLUMNS + i + 1])), False)
 
             args = (row_to_add + 1, target_row + 1)
 
