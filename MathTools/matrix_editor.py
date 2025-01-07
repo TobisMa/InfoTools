@@ -1,16 +1,11 @@
-from sympy.parsing.sympy_parser import implicit_multiplication, implicit_multiplication_application
-
-
+import sys
 CALC = int(input("Calculator (2: automatic, 1: only right matrix, 0: manual): "))
 
 if CALC != 0:
     from sympy import parse_expr, simplify
     from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application, convert_xor
 
-import sys
-
-
-OPERATORS = "+-*/^()"
+OPERATORS = "+-−*/^()"
 
 def print_history(history):
     print("\n\nHistory:")
@@ -71,7 +66,7 @@ transformations = (standard_transformations + (implicit_multiplication_applicati
 
 def get_math_solution(prefix: str, term: str, right: bool):
     if (CALC == 2 or (CALC == 1 and right)):
-        return str(simplify(parse_expr(term, evaluate=True, transformations=transformations)))
+        return str(simplify(parse_expr(term.replace("−", "-"), transformations=transformations)))
     else:
         return save_input("%s: %s = " % (prefix, term))
 
