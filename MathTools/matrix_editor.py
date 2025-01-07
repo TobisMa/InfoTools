@@ -1,8 +1,27 @@
-
 import sys
 
+def get_int_input(quest, r=None):
+    answer = ""
+    i:int = 0
+    while not answer:
+        answer = input(quest)
+        try:
+            i = int(answer)
+        except (TypeError, ValueError):
+            answer = ""
+        if r is not None and i not in r:
+            answer = ""
 
-OPERATORS = "+-*/^()"
+    return i
+
+CALC = int(get_int_input("Calculator (2: automatic, 1: only right matrix, 0: manual): ", range(0, 3)))
+
+if CALC != 0:
+    from sympy import parse_expr, simplify
+    from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application, convert_xor
+    transformations = (standard_transformations + (implicit_multiplication_application,) + (convert_xor,))
+
+OPERATORS = "+-−*/^()"
 
 def print_history(history):
     print("\n\nHistory:")
@@ -39,25 +58,17 @@ def print_mat(mat):
         else:
             print(" │")
 
-def get_int_input(quest, r=None):
-    answer = ""
-    i:int = 0
-    while not answer:
-        answer = input(quest)
-        try:
-            i = int(answer)
-        except (TypeError, ValueError):
-            answer = ""
-        if r is not None and i not in r:
-            answer = ""
-
-    return i
-
-def save_input(quest):
+def safe_input(quest):
     answer = ""
     while not answer:
         answer = input(quest)
     return answer
+
+def get_math_solution(prefix: str, term: str, right: bool):
+    if (CALC == 2 or (CALC == 1 and right)):
+        return str(simplify(parse_expr(term.replace("−", "-"), transformations=transformations)))
+    else:
+        return safe_input("%s: %s = " % (prefix, term))
 
 def mat_copy(m):
     return [x[:] for x in m]
@@ -65,7 +76,7 @@ def mat_copy(m):
 def math_expr(s):
     for op in OPERATORS:
         if op in s:
-            return "(" + s + ")"
+            return "(%s)" % s
     return s
 
 ARGS = sys.argv[1:]
@@ -86,13 +97,13 @@ COLUMNS = get_int_input("Columns: ")
 
 longest_value_length = 0
 
-matrix = [[""] * COLUMNS for _ in range(ROWS)] 
+matrix = [[""] * COLUMNS for _ in range(ROWS)]
 
 for r in range(ROWS):
     for c in range(COLUMNS):
         value = ""
         while not value:
-            value = save_input("Entry at %sr %sc: " % (r + 1, c + 1))
+            value = safe_input("Entry at %sr %sc: " % (r + 1, c + 1))
         matrix[r][c] = value
 
 print("\nEntered matrix:")
@@ -100,7 +111,7 @@ print_mat(matrix)
 print("\n")
 
 if mode == "g":
-    result_vec = [save_input("Result for row %i: " % (i + 1)) for i in range(ROWS)]
+    result_vec = [safe_input("Result for row %i: " % (i + 1)) for i in range(ROWS)]
 
 for i, row in enumerate(matrix):
     if mode == "i":
@@ -128,12 +139,12 @@ while True:
     print("\n\n")
     print_mat(matrix)
     args = ()
-    action = save_input("[S]wap/Swap [c]olumn/[A]dd/Subtract[-]/Add [w]ith factor/[M]ultiply/[E]dit value/[U]ndo/[H]istory/[Q]uit: ").lower()
+    action = safe_input("[S]wap/Swap [c]olumn/[A]dd/Subtract[-]/Add [w]ith factor/[M]ultiply/[E]dit value/[U]ndo/[H]istory/[Q]uit: ").lower()
     if not action:
         continue
     try:
         if action[0] == "q":
-            if save_input("You sure to quit? [y]es/[N]o: ").lower() == "y":
+            if safe_input("You sure to quit? [y]es/[N]o: ").lower() == "y":
                 break
             continue
 
@@ -141,7 +152,7 @@ while True:
             print("NOTE: This operation can break the data validation (assuming you have no mistakes in your calculations so far... hehe")
             row = get_int_input("Row: ", range(1, ROWS + 1)) - 1
             column = get_int_input("Column: ", range(1, 2 * COLUMNS + 1)) - 1
-            value = save_input("Enter value: ")
+            value = safe_input("Enter value: ")
             matrix[row][column] = value
             args = (row + 1, column + 1, matrix[row][column])
 
@@ -154,7 +165,7 @@ while True:
             continue
 
         elif action[0] == "u":
-            if save_input("Really undo? [y]es/[N]o").lower() == "y":
+            if safe_input("Really undo? [y]es/[N]o").lower() == "y":
                 matrix = mat_copy(history[-1][1])
                 history = history[:-1]
 
@@ -179,15 +190,13 @@ while True:
 
         elif action[0] in "m*":
             row = get_int_input("Row to multiply with a factor: ", range(1, ROWS + 1)) - 1
-            factor = save_input("Factor to multiply with: ")
+            factor = safe_input("Factor to multiply with: ")
 
             for i, value in enumerate(matrix[row][:COLUMNS]):
-                result = save_input("Column %i: %s * %s = " % (i + 1, math_expr(value), math_expr(factor)))
-                matrix[row][i] = result
+                matrix[row][i] = get_math_solution("Column %i" % i, "%s * %s" % (math_expr(value), math_expr(factor)), False)
 
             for i, value in enumerate(matrix[row][COLUMNS + 1:]):
-                row_change = save_input("Result of %s * %s = " % (math_expr(value), math_expr(factor)))
-                matrix[row][COLUMNS + 1 + i] = row_change
+                matrix[row][COLUMNS + i + 1] = get_math_solution("Result of", "%s * %s" % (math_expr(value), math_expr(factor)), True)
 
             args = (row + 1, factor)
 
@@ -198,35 +207,30 @@ while True:
             row_to_add = get_int_input("Row to %s: " % verb, range(1, ROWS + 1)) - 1
 
             for i, (target_value, add_value) in enumerate(zip(matrix[target_row][:COLUMNS], matrix[row_to_add][:COLUMNS])):
-                result = save_input("Column %i: %s %s %s = " % (i + 1, math_expr(target_value), sign, math_expr(add_value)))
-                matrix[target_row][i] = result
+                matrix[target_row][i] = get_math_solution("Column %i" % i, "%s %s %s" % (math_expr(target_value), sign, math_expr(add_value)), False)
             
             original_add_row = swap_mapping_rows[row_to_add]
             for i, value in enumerate(matrix[target_row][COLUMNS + 1:]):
-                result = save_input("Result of %s %s %s = " % (value, sign, math_expr(matrix[row_to_add][COLUMNS + i + 1])))
-                matrix[target_row][COLUMNS + i + 1] = result
+                matrix[target_row][COLUMNS + i + 1] = get_math_solution("Result of", "%s %s %s" % (math_expr(value), sign, math_expr(matrix[row_to_add][COLUMNS + i + 1])), False)
 
             args = (row_to_add + 1, target_row + 1)
 
         elif action[0] == "w":
             target_row = get_int_input("Target row A (which will be changed): ", range(1, ROWS + 1)) - 1
             row_to_add = get_int_input("Row B to add: ", range(1, ROWS + 1)) - 1
-            factor = save_input("Factor to multiply on row B before adding: ")
+            factor = safe_input("Factor to multiply on row B before adding: ")
 
             row_copy = matrix[row_to_add][:COLUMNS]
             print("\nMultiply row:")
             for i, value in enumerate(row_copy):
-                result = save_input("Column %i: %s * %s = " % (i + 1, math_expr(value), math_expr(factor)))
-                row_copy[i] = result
+                row_copy[i] = get_math_solution("Column %i" % i, "%s * %s" % (math_expr(value), math_expr(factor)), False)
 
             print("\nAdd rows:")
             for i, (target_value, add_value) in enumerate(zip(matrix[target_row][:COLUMNS], row_copy)):
-                result = save_input("Column %i: %s + %s = " % (i + 1, math_expr(target_value), math_expr(add_value)))
-                matrix[target_row][i] = result
+                matrix[target_row][i] = get_math_solution("Column %i" % i, "%s + %s" % (math_expr(target_value), math_expr(add_value)), False)
 
             for i, value in enumerate(matrix[target_row][COLUMNS + 1:]):
-                result = save_input("Result of %s + %s * %s = " % (math_expr(value), math_expr(factor), math_expr(matrix[row_to_add][COLUMNS + i + 1])))
-                matrix[target_row][COLUMNS + i + 1] = result
+                matrix[target_row][COLUMNS + i + 1] = get_math_solution("Result of", "%s + %s * %s" % (math_expr(value), math_expr(factor), math_expr(matrix[row_to_add][COLUMNS + i + 1])), True)
 
             args = (target_row + 1, factor, row_to_add + 1)
 
@@ -234,7 +238,7 @@ while True:
             continue
 
     except KeyboardInterrupt:
-        if save_input("\nOperation canceled. Quit programm? [y]es/[N]o: ").lower() == "y":
+        if safe_input("\nOperation canceled. Quit programm? [y]es/[N]o: ").lower() == "y":
             break
         continue
 
