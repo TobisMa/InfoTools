@@ -130,9 +130,9 @@ while True:
                 result = input("Column %i: %s * %s = " % (i + 1, math_expr(value), math_expr(factor)))
                 matrix[row][i] = result
 
-            original_row = swap_mapping_rows[row]
-            row_change = input("Result of %s * %s = " % (math_expr(matrix[row][COLUMNS + original_row + 1]), math_expr(factor)))
-            matrix[row][COLUMNS + original_row + 1] = row_change
+            for i, _ in enumerate(matrix[row][:COLUMNS]):
+                row_change = input("Result of %s * %s = " % (math_expr(matrix[row][COLUMNS + 1 + i]), math_expr(factor)))
+                matrix[row][COLUMNS + 1 + i] = row_change
 
         elif action[0] in "a+-":
             sign = "+" if action[0] in "a+" else "-"
@@ -145,9 +145,9 @@ while True:
                 matrix[target_row][i] = result
             
             original_add_row = swap_mapping_rows[row_to_add]
-            current_value_of_to_add_row = matrix[row_to_add][COLUMNS + original_add_row + 1]
-            result = input("Result of %s %s %s = " % (math_expr(matrix[target_row][COLUMNS + original_add_row + 1]), sign, math_expr(current_value_of_to_add_row)))
-            matrix[target_row][COLUMNS + original_add_row + 1] = result
+            for i, _ in enumerate(matrix[target_row][:COLUMNS]):
+                result = input("Result of %s %s %s = " % (math_expr(matrix[target_row][COLUMNS + 1 + i]), sign, math_expr(matrix[row_to_add][COLUMNS + i + 1])))
+                matrix[target_row][COLUMNS + i + 1] = result
 
         elif action[0] == "w":
             target_row = get_int_input("Target row A (which will be changed): ", range(1, ROWS + 1)) - 1
@@ -167,8 +167,9 @@ while True:
 
             original_add_row = swap_mapping_rows[row_to_add]
             current_value_of_to_add_row = matrix[row_to_add][COLUMNS + original_add_row + 1]
-            result = input("Result of %s + %s * %s = " % (math_expr(matrix[target_row][COLUMNS + original_add_row + 1]), math_expr(factor), math_expr(current_value_of_to_add_row)))
-            matrix[target_row][COLUMNS + original_add_row + 1] = result
+            for i, _ in enumerate(matrix[target_row][:COLUMNS]):
+                result = input("Result of %s + %s * %s = " % (math_expr(matrix[target_row][COLUMNS + 1 + i]), math_expr(factor), math_expr(matrix[row_to_add][COLUMNS + i + 1])))
+                matrix[target_row][COLUMNS + i + 1] = result
 
         else:
             continue
