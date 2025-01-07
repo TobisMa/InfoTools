@@ -4,6 +4,7 @@ CALC = int(input("Calculator (2: automatic, 1: only right matrix, 0: manual): ")
 if CALC != 0:
     from sympy import parse_expr, simplify
     from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application, convert_xor
+    transformations = (standard_transformations + (implicit_multiplication_application,) + (convert_xor,))
 
 OPERATORS = "+-−*/^()"
 
@@ -61,8 +62,6 @@ def safe_input(quest):
     while not answer:
         answer = input(quest)
     return answer
-
-transformations = (standard_transformations + (implicit_multiplication_application,) + (convert_xor,))
 
 def get_math_solution(prefix: str, term: str, right: bool):
     if (CALC == 2 or (CALC == 1 and right)):
@@ -195,8 +194,8 @@ while True:
             for i, value in enumerate(matrix[row][:COLUMNS]):
                 matrix[row][i] = get_math_solution("Column " + str(i), "%s * %s" % (math_expr(value), math_expr(factor)), False)
 
-            for i, _ in enumerate(matrix[row][:COLUMNS]):
-                matrix[row][COLUMNS + i + 1] = get_math_solution("Result of", "%s * %s" % (math_expr(matrix[row][COLUMNS + i + 1]), math_expr(factor)), True)
+            for i, value in enumerate(matrix[row][COLUMNS + 1:]):
+                matrix[row][COLUMNS+i+1] = get_math_solution("Result of", "%s * %s" % (math_expr(value), math_expr(factor)), True)
 
             args = (row + 1, factor)
 
@@ -210,8 +209,8 @@ while True:
                 matrix[target_row][i] = get_math_solution("Column %i" % i, "%s %s %s" % (math_expr(target_value), sign, math_expr(add_value)), False)
             
             original_add_row = swap_mapping_rows[row_to_add]
-            for i, _ in enumerate(matrix[target_row][:COLUMNS]):
-                matrix[target_row][COLUMNS + i + 1] = get_math_solution("Result of", "%s %s %s" % (math_expr(matrix[row_to_add][COLUMNS + i + 1]), sign, math_expr(matrix[row_to_add][COLUMNS + i + 1])), False)
+            for i, value in enumerate(matrix[target_row][COLUMNS + 1:]):
+                matrix[target_row][COLUMNS+i+1] = get_math_solution("Result of", "%s %s %s" % (math_expr(value), sign, math_expr(matrix[row_to_add][COLUMNS+i+1])), False)
 
             args = (row_to_add + 1, target_row + 1)
 
