@@ -4,7 +4,14 @@ import sys
 
 OPERATORS = "+-*/^()"
 
-def print_mat(mat, space=4):
+def print_history(history):
+    print("\n\nHistory:")
+    for action, mat, args in history:
+        print("Action:", action % args)
+        print_mat(mat)
+        print()
+
+def print_mat(mat):
     column_entry_length = []
     for column in range(len(mat[0])):
         column_entry_length.append(max([mat[row][column] for row in range(len(mat))], key=len))
@@ -93,7 +100,7 @@ print_mat(matrix)
 print("\n")
 
 if mode == "g":
-    result_vec = [save_input("Result for row %i: " % i) for i in range(ROWS)]
+    result_vec = [save_input("Result for row %i: " % (i + 1)) for i in range(ROWS)]
 
 for i, row in enumerate(matrix):
     if mode == "i":
@@ -104,21 +111,24 @@ for i, row in enumerate(matrix):
         row += ["|", result_vec[i]]
 
 swap_mapping_rows = {x: x for x in range(0, ROWS)}
-history = [("start", mat_copy(matrix))]
+history = [("start", mat_copy(matrix), ())]
 ACTION_MAP = {
-    "s": "swap rows",
-    "~": "swap rows",
-    "+": "add",
-    "a": "add",
-    "-": "subtract",
-    "w": "Add with factor",
-    "m": "Multiply",
-    "e": "Edit value",
+    "s": "swapped rows %s and %s",
+    "~": "swapped rows %s and %s",
+    "+": "add rows %s + %s",
+    "a": "add rows %s + %s",
+    "-": "subtract rows %s - %s",
+    "w": "Add row with factor: %sr + %s * %sr",
+    "m": "Multiply row %s with factor %s",
+    "*": "Multiply row %s with factor %s",
+    "e": "Edit value %sr %sc to value %s",
     "c": "swap columns",
 }
 while True:
+    print("\n\n")
     print_mat(matrix)
-    action = save_input("[S]wap/Swap [c]olumn/[A]dd/Subtract[-]/Add [w]ith factor/[M]ultiply/[E]dit value/[Q]uit: ").lower()
+    args = ()
+    action = save_input("[S]wap/Swap [c]olumn/[A]dd/Subtract[-]/Add [w]ith factor/[M]ultiply/[E]dit value/[U]ndo/[H]istory/[Q]uit: ").lower()
     if not action:
         continue
     try:
@@ -133,6 +143,22 @@ while True:
             column = get_int_input("Column: ", range(1, 2 * COLUMNS + 1)) - 1
             value = save_input("Enter value: ")
             matrix[row][column] = value
+            args = (row + 1, column + 1, matrix[row][column])
+
+        elif action[0] == "h":
+            if len(history) == 1:
+                print("No history with changes")
+            else:
+                print_history(history)
+
+            continue
+
+        elif action[0] == "u":
+            if save_input("Really undo? [y]es/[N]o").lower() == "y":
+                matrix = mat_copy(history[-1][1])
+                history = history[:-1]
+
+            continue
 
         elif action[0] in "s~":
             r1 = get_int_input("Row A to swap: ", range(1, ROWS + 1)) - 1
@@ -140,6 +166,7 @@ while True:
             matrix[r1], matrix[r2] = matrix[r2], matrix[r1]
             swap_mapping_rows[r1] = r2
             swap_mapping_rows[r2] = r1
+            args = (r1 + 1, r2 + 1)
 
         elif action[0] == "c":
             c1 = get_int_input("Column A to swap: ", range(1, COLUMNS + 1)) - 1
@@ -162,6 +189,8 @@ while True:
                 row_change = save_input("Result of %s * %s = " % (math_expr(value), math_expr(factor)))
                 matrix[row][COLUMNS + 1 + i] = row_change
 
+            args = (row + 1, factor)
+
         elif action[0] in "a+-":
             sign = "+" if action[0] in "a+" else "-"
             verb = "add" if action[0] in "a+" else "subtract (b in a-b)"
@@ -176,6 +205,8 @@ while True:
             for i, value in enumerate(matrix[target_row][COLUMNS + 1:]):
                 result = save_input("Result of %s %s %s = " % (value, sign, math_expr(matrix[row_to_add][COLUMNS + i + 1])))
                 matrix[target_row][COLUMNS + i + 1] = result
+
+            args = (row_to_add + 1, target_row + 1)
 
         elif action[0] == "w":
             target_row = get_int_input("Target row A (which will be changed): ", range(1, ROWS + 1)) - 1
@@ -193,11 +224,11 @@ while True:
                 result = save_input("Column %i: %s + %s = " % (i + 1, math_expr(target_value), math_expr(add_value)))
                 matrix[target_row][i] = result
 
-            original_add_row = swap_mapping_rows[row_to_add]
-            current_value_of_to_add_row = matrix[row_to_add][COLUMNS + original_add_row + 1]
             for i, value in enumerate(matrix[target_row][COLUMNS + 1:]):
                 result = save_input("Result of %s + %s * %s = " % (math_expr(value), math_expr(factor), math_expr(matrix[row_to_add][COLUMNS + i + 1])))
                 matrix[target_row][COLUMNS + i + 1] = result
+
+            args = (target_row + 1, factor, row_to_add + 1)
 
         else:
             continue
@@ -207,12 +238,7 @@ while True:
             break
         continue
 
-    history.append((ACTION_MAP[action[0]], mat_copy(matrix)))
-    print("\n\n")
+    history.append((ACTION_MAP[action[0]], mat_copy(matrix), args))
 
+print_history(history)
 
-print("\n\nHistory:")
-for action, mat in history:
-    print("Action:", action)
-    print_mat(mat)
-    print()
