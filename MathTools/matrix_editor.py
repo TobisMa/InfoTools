@@ -111,7 +111,7 @@ print_mat(matrix)
 print("\n")
 
 if mode == "g":
-    result_vec = [save_input("Result for row %i: " % (i + 1)) for i in range(ROWS)]
+    result_vec = [safe_input("Result for row %i: " % (i + 1)) for i in range(ROWS)]
 
 for i, row in enumerate(matrix):
     if mode == "i":
@@ -139,7 +139,7 @@ while True:
     print("\n\n")
     print_mat(matrix)
     args = ()
-    action = save_input("[S]wap/Swap [c]olumn/[A]dd/Subtract[-]/Add [w]ith factor/[M]ultiply/[E]dit value/[U]ndo/[H]istory/[Q]uit: ").lower()
+    action = safe_input("[S]wap/Swap [c]olumn/[A]dd/Subtract[-]/Add [w]ith factor/[M]ultiply/[E]dit value/[U]ndo/[H]istory/[Q]uit: ").lower()
     if not action:
         continue
     try:
@@ -165,7 +165,7 @@ while True:
             continue
 
         elif action[0] == "u":
-            if save_input("Really undo? [y]es/[N]o").lower() == "y":
+            if safe_input("Really undo? [y]es/[N]o").lower() == "y":
                 matrix = mat_copy(history[-1][1])
                 history = history[:-1]
 
