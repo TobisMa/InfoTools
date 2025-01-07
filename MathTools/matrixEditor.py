@@ -1,3 +1,4 @@
+
 OPERATORS = "+-*/^()"
 
 def print_mat(mat, space=4):
@@ -35,7 +36,7 @@ def get_int_input(quest, r=None):
         answer = input(quest)
         try:
             i = int(answer)
-        except TypeError:
+        except (TypeError, ValueError):
             answer = ""
         if r is not None and i not in r:
             answer = ""
